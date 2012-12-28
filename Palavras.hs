@@ -2,6 +2,7 @@ module Palavras where
 
 data Afixo = Prefixo | Sufixo deriving Show
 
-tipoDoAfixo :: String -> Afixo
-tipoDoAfixo ('P':'F':'X':resto) = Prefixo
-tipoDoAfixo ('S':'F':'X':resto) = Sufixo
+afixo :: String -> (Maybe Afixo, String)
+afixo ('P':'F':'X':' ':resto) = (Just Prefixo, resto)
+afixo ('S':'F':'X':' ':resto) = (Just Sufixo, resto)
+afixo string                  = (Nothing, string)
