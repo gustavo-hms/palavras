@@ -1,4 +1,4 @@
 palavras
 ========
 
-Programa para se buscar palavras
+Programa para se buscarem palavras
