@@ -35,12 +35,9 @@ inserirRegra r afixo = Afixo t s c qtd (r:rs)
           qtd = quantidade afixo
           rs = regras afixo
 
---criarRegra :: [String] -> Maybe Regra
---criarRegra ("PFX":símb:remover:prefixo:contexto:[]) =
---    Just $ Regra Prefixo (head símb) (read remover) prefixo (criarCondição contexto)
---criarRegra ("SFX":símb:remover:sufixo:contexto:[]) =
---    Just $ Regra Sufixo (head símb) (read remover) sufixo (criarCondição contexto)
---criarRegra _ = Nothing
+criarRegra :: [String] -> Regra
+criarRegra (aRemover:trechoARemover:contexto:[]) =
+    Regra (read aRemover) trechoARemover (criarCondição contexto)
 
 criarCondição :: String -> String -> Bool
 criarCondição símbolos = condiçãoAPartirDeGrupos $ snd (foldr agrupar (False, []) símbolos)
@@ -68,7 +65,7 @@ condiçãoAPartirDeGrupos grupos palavra
           predicados       = map predicado grupos 
 
 predicado :: String -> Char -> Bool
-predicado "." letra                 = True
-predicado (c:[]) letra              = c == letra
-predicado ('[':'^':elementos) letra = letra `notElem` (init elementos)
-predicado ('[':elementos) letra     = letra `elem` (init elementos)
+predicado "." letra             = True
+predicado (c:[]) letra          = c == letra
+predicado ('^':elementos) letra = letra `notElem` elementos
+predicado elementos letra       = letra `elem` elementos
