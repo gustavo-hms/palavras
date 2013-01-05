@@ -1,11 +1,6 @@
 module Palavras where
 
-data Tipo = Prefixo | Sufixo deriving Show
-
-instance Eq Tipo where
-    Prefixo == Prefixo = True
-    Sufixo == Sufixo   = True
-    _ == _             = False
+data Tipo = Prefixo | Sufixo deriving (Eq, Show)
 
 data Afixo = Afixo {
         tipo :: Tipo,
