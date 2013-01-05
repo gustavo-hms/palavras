@@ -2,6 +2,11 @@ module Palavras where
 
 data Tipo = Prefixo | Sufixo deriving Show
 
+instance Eq Tipo where
+    Prefixo == Prefixo = True
+    Sufixo == Sufixo   = True
+    _ == _             = False
+
 data Afixo = Afixo {
         tipo :: Tipo,
         símbolo :: Char,
@@ -11,33 +16,44 @@ data Afixo = Afixo {
     }
 
 data Regra = Regra {
-        símbolosARemover :: Int,
-        texto :: String,
+        tipoDoAfixo :: Tipo,
+        símboloDoAfixo :: Char,
+        letrasARemover :: Int,
+        textoARemover :: String,
         condição :: String -> Bool
     }
 
+gerarTipo :: String -> Maybe Tipo
+gerarTipo "PFX" = Just Prefixo
+gerarTipo "SFX" = Just Sufixo
+gerarTipo _     = Nothing
+
 criarAfixo :: [String] -> Maybe Afixo
-criarAfixo ("PFX":símb:cruzamentos:qtd:[]) =
-    Just $ Afixo Prefixo (head símb) (podeCruzar cruzamentos) (read qtd) []
-criarAfixo ("SFX":símb:cruzamentos:qtd:[]) =
-    Just $ Afixo Sufixo (head símb) (podeCruzar cruzamentos) (read qtd) []
+criarAfixo (t:símb:cruzamentos:qtd:[]) = do
+    t' <- gerarTipo t
+    return $ Afixo t' (head símb) (podeCruzar cruzamentos) (read qtd) []
 criarAfixo _ = Nothing
 
 podeCruzar :: String -> Bool
 podeCruzar "Y" = True
 podeCruzar _   = False
 
-inserirRegra :: Regra -> Afixo -> Afixo
-inserirRegra r afixo = Afixo t s c qtd (r:rs)
-    where t = tipo afixo
-          s = símbolo afixo
-          c = permiteCruzamentos afixo
-          qtd = quantidade afixo
-          rs = regras afixo
+inserirRegra :: Regra -> Afixo -> Maybe Afixo
+inserirRegra r a
+    | compatíveis r a = Just $ Afixo t s c qtd (r:rs)
+    | otherwise       = Nothing
+    where compatíveis regra afixo = tipoDoAfixo regra == tipo afixo && símboloDoAfixo regra == símbolo afixo 
+          t = tipo a
+          s = símbolo a
+          c = permiteCruzamentos a
+          qtd = quantidade a
+          rs = regras a 
 
-criarRegra :: [String] -> Regra
-criarRegra (aRemover:trechoARemover:contexto:[]) =
-    Regra (read aRemover) trechoARemover (criarCondição contexto)
+criarRegra :: [String] -> Maybe Regra
+criarRegra (t:símb:aRemover:trechoARemover:contexto:[]) = do
+    t' <- gerarTipo t
+    return $ Regra t' (head símb) (read aRemover) trechoARemover (criarCondição contexto)
+criarRegra _ = Nothing
 
 criarCondição :: String -> String -> Bool
 criarCondição símbolos = condiçãoAPartirDeGrupos $ snd (foldr agrupar (False, []) símbolos)
