@@ -74,6 +74,8 @@ condiçãoAPartirDeGrupos grupos palavra
           númeroDeGrupos   = length grupos
           finalDaPalavra   = drop (tamanhoDaPalavra - númeroDeGrupos) palavra
           predicados       = map predicado grupos 
+-- TODO a condição só é aplicada ao final da palavra para sufixos; para 
+-- prefixos, ela é aplicada ao início da palavra; corrigir isso!
 
 predicado :: String -> Char -> Bool
 predicado "." letra             = True
