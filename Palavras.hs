@@ -47,11 +47,11 @@ inserirRegra r a
 criarRegra :: [String] -> Maybe Regra
 criarRegra (t:símb:aRemover:trechoARemover:contexto:[]) = do
     t' <- gerarTipo t
-    return $ Regra t' (head símb) (read aRemover) trechoARemover (criarCondição contexto)
+    return $ Regra t' (head símb) (read aRemover) trechoARemover (criarCondição t' contexto)
 criarRegra _ = Nothing
 
-criarCondição :: String -> String -> Bool
-criarCondição símbolos = condiçãoAPartirDeGrupos $ snd (foldr agrupar (False, []) símbolos)
+criarCondição :: Tipo -> String -> String -> Bool
+criarCondição t símbolos = condiçãoAPartirDeGrupos t $ snd (foldr agrupar (False, []) símbolos)
 
 -- Agrupa entradas entre colchetes.
 -- Ex: snd $ foldr agrupar (False, []) "[^a]xy[bcdef]" == ["^a", "x", 
@@ -66,19 +66,18 @@ agrupar c (grupoAberto, acumulado)
                   where a = head acumulado
                         as = tail acumulado
 
-condiçãoAPartirDeGrupos :: [String] -> String -> Bool
-condiçãoAPartirDeGrupos grupos palavra
+condiçãoAPartirDeGrupos :: Tipo -> [String] -> String -> Bool
+condiçãoAPartirDeGrupos t grupos palavra
     | tamanhoDaPalavra < númeroDeGrupos = False
+    | t == Prefixo                      = and $ zipWith ($) predicados palavra
     | otherwise                         = and $ zipWith ($) predicados finalDaPalavra 
     where tamanhoDaPalavra = length palavra
           númeroDeGrupos   = length grupos
           finalDaPalavra   = drop (tamanhoDaPalavra - númeroDeGrupos) palavra
-          predicados       = map predicado grupos 
--- TODO a condição só é aplicada ao final da palavra para sufixos; para 
--- prefixos, ela é aplicada ao início da palavra; corrigir isso!
+          predicados       = map criarPredicado grupos 
 
-predicado :: String -> Char -> Bool
-predicado "." letra             = True
-predicado (c:[]) letra          = c == letra
-predicado ('^':elementos) letra = letra `notElem` elementos
-predicado elementos letra       = letra `elem` elementos
+criarPredicado :: String -> Char -> Bool
+criarPredicado "." _                 = True
+criarPredicado (c:[]) letra          = c == letra
+criarPredicado ('^':elementos) letra = letra `notElem` elementos
+criarPredicado elementos letra       = letra `elem` elementos
