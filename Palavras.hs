@@ -58,13 +58,12 @@ criarCondição t símbolos = condiçãoAPartirDeGrupos t $ snd (foldr agrupar (
 -- "y","bcdef"]
 agrupar :: Char -> (Bool, [String]) -> (Bool, [String])
 agrupar c (grupoAberto, acumulado)
-    | c == ']'  = (True, []:acumulado)
-    | c == '['  = (False, acumulado)
-    | otherwise = if grupoAberto
-                     then (True, (c:a):as)
-                     else (False, [c]:acumulado)
-                  where a = head acumulado
-                        as = tail acumulado
+    | c == ']'    = (True, []:acumulado)
+    | c == '['    = (False, acumulado)
+    | grupoAberto = (True, (c:a):as)
+    | otherwise   = (False, [c]:acumulado)
+    where a = head acumulado
+          as = tail acumulado
 
 condiçãoAPartirDeGrupos :: Tipo -> [String] -> String -> Bool
 condiçãoAPartirDeGrupos t grupos palavra
