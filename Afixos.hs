@@ -1,27 +1,39 @@
-module Palavras where
+-- TODO as letras a remover não são inteiros; 0 significa que nada será 
+-- removido
+-- TODO uma regra pode ter um item a mais (regra morfológica); considerar isso
+-- TODO sufixos podem ter eles também uma regra de sufixação
+-- TODO CIMFUMFIX
+-- TODO estudar de habilitar a "FLAG long" e a "FLAG num"
+module Afixos where
 
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
 
 data Afixo = Afixo {
-        tipo :: Tipo,
-        símbolo :: Char,
+        tipo               :: Tipo,
+        símbolo            :: Char,
         permiteCruzamentos :: Bool,
-        quantidade :: Int,
-        regras :: [Regra]
+        quantidade         :: Int,
+        regras             :: [Regra]
     }
 
 data Regra = Regra {
-        tipoDoAfixo :: Tipo,
+        tipoDoAfixo    :: Tipo,
         símboloDoAfixo :: Char,
         letrasARemover :: Int,
-        textoARemover :: String,
-        condição :: String -> Bool
+        textoARemover  :: String,
+        condição       :: String -> Bool
     }
 
 gerarTipo :: String -> Maybe Tipo
 gerarTipo "PFX" = Just Prefixo
 gerarTipo "SFX" = Just Sufixo
 gerarTipo _     = Nothing
+
+prefixo :: Afixo -> Bool
+prefixo a = tipo a == Prefixo
+
+sufixo :: Afixo -> Bool
+sufixo a = tipo a == Sufixo
 
 criarAfixo :: [String] -> Maybe Afixo
 criarAfixo (t:símb:cruzamentos:qtd:[]) = do
