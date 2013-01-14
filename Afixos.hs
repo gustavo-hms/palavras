@@ -2,6 +2,7 @@
 -- TODO sufixos podem ter eles também uma regra de sufixação
 -- TODO CIMFUMFIX
 -- TODO estudar de habilitar a "FLAG long" e a "FLAG num"
+-- TODO implementar FORBIDDENWORD
 module Afixos where
 
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
@@ -15,11 +16,11 @@ data Afixo = Afixo {
     }
 
 data Regra = Regra {
-        tipoDoAfixo       :: Tipo,
-        símboloDoAfixo    :: Char,
-        textoARemover     :: String,
-        textoAAcrescentar :: String,
-        condição          :: String -> Bool
+        tipoDoAfixo    :: Tipo,
+        símboloDoAfixo :: Char,
+        textoARemover  :: String,
+        textoAInserir  :: String,
+        condição       :: String -> Bool
     }
 
 gerarTipo :: String -> Maybe Tipo
