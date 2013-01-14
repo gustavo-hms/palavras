@@ -17,11 +17,11 @@ data Afixo = Afixo {
     }
 
 data Regra = Regra {
-        tipoDoAfixo    :: Tipo,
-        símboloDoAfixo :: Char,
-        letrasARemover :: Int,
-        textoARemover  :: String,
-        condição       :: String -> Bool
+        tipoDoAfixo       :: Tipo,
+        símboloDoAfixo    :: Char,
+        textoARemover     :: String,
+        textoAAcrescentar :: String,
+        condição          :: String -> Bool
     }
 
 gerarTipo :: String -> Maybe Tipo
@@ -57,9 +57,11 @@ inserirRegra r a
           rs = regras a 
 
 criarRegra :: [String] -> Maybe Regra
-criarRegra (t:símb:aRemover:trechoARemover:contexto:[]) = do
+criarRegra (t:símb:aRemover:aAcrescentar:contexto:[]) = do
     t' <- gerarTipo t
-    return $ Regra t' (head símb) (read aRemover) trechoARemover (criarCondição t' contexto)
+    return $ Regra t' (head símb) (uniformizar aRemover) (uniformizar aAcrescentar) (criarCondição t' contexto)
+    where uniformizar "0" = ""
+          uniformizar p   = p
 criarRegra _ = Nothing
 
 criarCondição :: Tipo -> String -> String -> Bool
