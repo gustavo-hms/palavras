@@ -1,5 +1,3 @@
--- TODO as letras a remover não são inteiros; 0 significa que nada será 
--- removido
 -- TODO uma regra pode ter um item a mais (regra morfológica); considerar isso
 -- TODO sufixos podem ter eles também uma regra de sufixação
 -- TODO CIMFUMFIX
