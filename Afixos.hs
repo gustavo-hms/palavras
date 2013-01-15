@@ -1,4 +1,3 @@
--- TODO uma regra pode ter um item a mais (regra morfológica); considerar isso
 -- TODO sufixos podem ter eles também uma regra de sufixação
 -- TODO CIMFUMFIX
 -- TODO estudar de habilitar a "FLAG long" e a "FLAG num"
@@ -56,7 +55,7 @@ inserirRegra r a
           rs = regras a 
 
 criarRegra :: [String] -> Maybe Regra
-criarRegra (t:símb:aRemover:aAcrescentar:contexto:[]) = do
+criarRegra (t:símb:aRemover:aAcrescentar:contexto:_) = do
     t' <- gerarTipo t
     return $ Regra t' (head símb) (uniformizar aRemover) (uniformizar aAcrescentar) (criarCondição t' contexto)
     where uniformizar "0" = ""
