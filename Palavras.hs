@@ -5,9 +5,9 @@ import qualified Data.Map.Lazy as M
 import Data.List (partition)
 
 data Palavra = Palavra {
-        raiz :: String,
+        raiz     :: String,
         prefixos :: [Afixo],
-        sufixos :: [Afixo]
+        sufixos  :: [Afixo]
     }
 
 criarPalavra :: String -> M.Map Char Afixo -> Palavra
@@ -19,10 +19,16 @@ criarPalavra p m
 
 expandir :: Palavra -> [String]
 expandir p = p:comPrefixos ++ comCruzamentos ++ comSufixos
-    where comPrefixos = expandirPrefixos (raiz p) pfxSemCruzamentos
-          comCruzamentos = expandirCruzamentos (raiz p) pfxComCruzamentos sfxComCruzamentos
-          comSufixos = expandirSufixos (raiz p) sfxSemCruzamentos
+    where comPrefixos = expandirPrefixos pfxSemCruzamentos (raiz p)
+          comCruzamentos = expandirCruzamentos pfxComCruzamentos sfxComCruzamentos (raiz p)
+          comSufixos = expandirSufixos sfxSemCruzamentos (raiz p)
           (pfxSemCruzamentos, pfxComCruzamentos) = partition permiteCruzamentos (prefixos p)
           (sfxSemCruzamentos, sfxComCruzamentos) = partition permiteCruzamentos (sufixos p)
 
-expandirPrefixos :: String -> [Afixo] -> [String]
+expandirPrefixos :: [Afixo] -> String -> [String]
+expandirPrefixos as p = map ($ p) (concat . map expandirPrefixo as)
+
+expandirPrefixo :: Afixo -> String -> [String]
+expandirPrefixo a p = map (aplicar p) (filter (`condição` p) (regras a))
+    where aplicar p regra = textoAInserir regra ++ remover (textoARemover regra) p
+          remover t = drop (length t)
