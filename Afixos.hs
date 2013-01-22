@@ -92,3 +92,12 @@ criarPredicado "." _                 = True
 criarPredicado (c:[]) letra          = c == letra
 criarPredicado ('^':elementos) letra = letra `notElem` elementos
 criarPredicado elementos letra       = letra `elem` elementos
+
+aplicar :: Afixo -> String -> [String]
+aplicar afx termo = map (executarRegra termo) (filter (`condição` termo (regras afx)))
+
+executarRegra :: String -> Regra -> String
+executarRegra termo r =
+    case tipo r of
+         Prefixo -> inserir r ++ drop (remover r) termo
+         Sufixo  -> take (length termo - remover r) ++ inserir r
