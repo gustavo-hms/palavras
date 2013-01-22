@@ -7,18 +7,18 @@ module Afixos where
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
 
 data Afixo = Afixo {
-        tipo               :: Tipo,
-        símbolo            :: Char,
-        permiteCruzamentos :: Bool,
-        quantidade         :: Int,
-        regras             :: [Regra]
+        tipo       :: Tipo,
+        símbolo    :: Char,
+        podeCruzar :: Bool,
+        quantidade :: Int,
+        regras     :: [Regra]
     }
 
 data Regra = Regra {
         tipoDoAfixo    :: Tipo,
         símboloDoAfixo :: Char,
-        textoARemover  :: String,
-        textoAInserir  :: String,
+        remover        :: Int,
+        inserir        :: String,
         condição       :: String -> Bool
     }
 
@@ -50,14 +50,14 @@ inserirRegra r a
     where compatíveis regra afixo = tipoDoAfixo regra == tipo afixo && símboloDoAfixo regra == símbolo afixo 
           t = tipo a
           s = símbolo a
-          c = permiteCruzamentos a
+          c = podeCruzar a
           qtd = quantidade a
           rs = regras a 
 
 criarRegra :: [String] -> Maybe Regra
-criarRegra (t:símb:aRemover:aAcrescentar:contexto:_) = do
+criarRegra (t:símb:aRemover:aInserir:contexto:_) = do
     t' <- gerarTipo t
-    return $ Regra t' (head símb) (uniformizar aRemover) (uniformizar aAcrescentar) (criarCondição t' contexto)
+    return $ Regra t' (head símb) (length $ uniformizar aRemover) (uniformizar aInserir) (criarCondição t' contexto)
     where uniformizar "0" = ""
           uniformizar p   = p
 criarRegra _ = Nothing
