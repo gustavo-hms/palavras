@@ -19,10 +19,10 @@ criarPalavra p m
 
 expandir :: Palavra -> [String]
 expandir p = raiz p : comSfxSemCruz ++ comSfxCruz ++ comCruz ++ comPfx
-    where comSfxSemCruz = concat [aplicar sfx (raiz p) | sfx <- sufixos p, not podeCruzar sfx]
-          comSfxCruz    = concat [aplicar sfx (raiz p) | sfx <- sufixos p, podeCruzar sfx]
-          comCruz       = concat [aplicar pfx x | pfx <- prefixos p, podeCruzar pfx, x <- comSfxCruz]
-          comPfx        = concat [aplicar pfx (raiz p) | pfx <- prefixos p]
+    where comSfxSemCruz = [x | x <- aplicar sfx (raiz p), sfx <- sufixos p, not podeCruzar sfx]
+          comSfxCruz    = [x | x <- aplicar sfx (raiz p), sfx <- sufixos p, podeCruzar sfx]
+          comCruz       = [x | x <- aplicar pfx y, pfx <- prefixos p, podeCruzar pfx, y <- comSfxCruz]
+          comPfx        = [x | x <- aplicar pfx (raiz p), pfx <- prefixos p]
 
 expandirPrefixos :: [Afixo] -> String -> [String]
 expandirPrefixos as p = map ($ p) (concat . map expandirPrefixo as)
