@@ -36,12 +36,12 @@ sufixo a = tipo a == Sufixo
 criarAfixo :: [String] -> Maybe Afixo
 criarAfixo (t:símb:cruzamentos:qtd:[]) = do
     t' <- gerarTipo t
-    return $ Afixo t' (head símb) (podeCruzar cruzamentos) (read qtd) []
+    return $ Afixo t' (head símb) (aceitaCruzamentos cruzamentos) (read qtd) []
 criarAfixo _ = Nothing
 
-podeCruzar :: String -> Bool
-podeCruzar "Y" = True
-podeCruzar _   = False
+aceitaCruzamentos :: String -> Bool
+aceitaCruzamentos "Y" = True
+aceitaCruzamentos _   = False
 
 inserirRegra :: Regra -> Afixo -> Maybe Afixo
 inserirRegra r a
@@ -94,10 +94,10 @@ criarPredicado ('^':elementos) letra = letra `notElem` elementos
 criarPredicado elementos letra       = letra `elem` elementos
 
 aplicar :: Afixo -> String -> [String]
-aplicar afx termo = map (executarRegra termo) (filter (`condição` termo (regras afx)))
+aplicar afx termo = map (executarRegra termo) (filter (`condição` termo) (regras afx))
 
 executarRegra :: String -> Regra -> String
 executarRegra termo r =
-    case tipo r of
+    case tipoDoAfixo r of
          Prefixo -> inserir r ++ drop (remover r) termo
-         Sufixo  -> take (length termo - remover r) ++ inserir r
+         Sufixo  -> take (length termo - remover r) termo ++ inserir r
