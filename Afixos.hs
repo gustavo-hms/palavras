@@ -19,7 +19,8 @@ data Regra = Regra {
         símboloDoAfixo :: Char,
         remover        :: Int,
         inserir        :: String,
-        condição       :: String -> Bool
+        condição       :: String -> Bool,
+        continuação    :: Char
     }
 
 gerarTipo :: String -> Maybe Tipo
@@ -47,7 +48,8 @@ inserirRegra :: Regra -> Afixo -> Maybe Afixo
 inserirRegra r a
     | compatíveis r a = Just $ Afixo t s c qtd (r:rs)
     | otherwise       = Nothing
-    where compatíveis regra afixo = tipoDoAfixo regra == tipo afixo && símboloDoAfixo regra == símbolo afixo 
+    where compatíveis regra afixo = tipoDoAfixo regra == tipo afixo
+              && símboloDoAfixo regra == símbolo afixo 
           t = tipo a
           s = símbolo a
           c = podeCruzar a
@@ -57,9 +59,12 @@ inserirRegra r a
 criarRegra :: [String] -> Maybe Regra
 criarRegra (t:símb:aRemover:aInserir:contexto:_) = do
     t' <- gerarTipo t
-    return $ Regra t' (head símb) (length $ uniformizar aRemover) (uniformizar aInserir) (criarCondição t' contexto)
+    return $ Regra t' (head símb) (length $ uniformizar aRemover) (uniformizar aInserir) (criarCondição t' cond) cont
     where uniformizar "0" = ""
           uniformizar p   = p
+
+          (cond, resto) = break (== '/') contexto
+          cont = if null resto then "" else tail resto
 criarRegra _ = Nothing
 
 criarCondição :: Tipo -> String -> String -> Bool
