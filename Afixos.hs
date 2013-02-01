@@ -66,11 +66,11 @@ inserirRegra r a
     | otherwise       = Nothing
     where compatíveis regra afixo = tipoDoAfixo regra == tipo afixo
               && símboloDoAfixo regra == símbolo afixo 
-          t = tipo a
-          s = símbolo a
-          c = podeCruzar a
+          t   = tipo a
+          s   = símbolo a
+          c   = podeCruzar a
           qtd = quantidade a
-          rs = regras a 
+          rs  = regras a 
 
 criarRegra :: [String] -> Maybe Regra
 criarRegra (t:s:aRemover:aInserir:contexto:_) = do
@@ -80,7 +80,7 @@ criarRegra (t:s:aRemover:aInserir:contexto:_) = do
           uniformizar p   = p
 
           (cond, resto) = break (== '/') contexto
-          cont = if null resto then "" else tail resto
+          cont          = if null resto then "" else tail resto
 criarRegra _ = Nothing
 
 criarCondição :: Tipo -> String -> String -> Bool
@@ -95,7 +95,7 @@ agrupar c (grupoAberto, acumulado)
     | c == '['    = (False, acumulado)
     | grupoAberto = (True, (c:a):as)
     | otherwise   = (False, [c]:acumulado)
-    where a = head acumulado
+    where a  = head acumulado
           as = tail acumulado
 
 condiçãoAPartirDeGrupos :: Tipo -> [String] -> String -> Bool
