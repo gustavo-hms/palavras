@@ -17,21 +17,15 @@ criarPalavra p m
     where (txt, símbs) = break (== '/') p
           (pref, suf)  = partition prefixo (map (m M.!) (tail símbs))
 
-obterAfixos :: M.Map Char Afixo -> [Char] -> (Afixo, Afixo)
+obterAfixos :: M.Map Símbolo Afixo -> [Símbolo] -> ([Afixo], [Afixo])
 obterAfixos m símbs = partition prefixo (map (extrairAfixo m) símbs)
 
-extrairAfixo :: M.Map Char Afixo -> Char -> Afixo
-extrairAfixo m símb = preencherContinuação m (m M.! símb)
-
-preencherContinuação :: M.Map Char Afixo -> Afixo -> Afixo
-preencherContinuação a@(Afixo t s p q rs) =
-    case t of
-         Prefixo -> a
-         Sufixo  -> Afixo t s p q (map (inserirContinuações m) rs)
+extrairAfixo :: M.Map Símbolo Afixo -> Símbolo -> Afixo
+extrairAfixo m s = preencherContinuação m (m M.! s)
 
 expandir :: Palavra -> [String]
-expandir p = raiz p : comSfxSemCruz ++ comSfxCruz ++ comCruz ++ comPfx
-    where comSfxSemCruz = concat [aplicar sfx (raiz p) | sfx <- sufixos p, not (podeCruzar sfx)]
-          comSfxCruz    = concat [aplicar sfx (raiz p) | sfx <- sufixos p, podeCruzar sfx]
+expandir p = radical p : comSfxSemCruz ++ comSfxCruz ++ comCruz ++ comPfx
+    where comSfxSemCruz = concat [aplicar sfx (radical p) | sfx <- sufixos p, not (podeCruzar sfx)]
+          comSfxCruz    = concat [aplicar sfx (radical p) | sfx <- sufixos p, podeCruzar sfx]
           comCruz       = concat [aplicar pfx x | pfx <- prefixos p, podeCruzar pfx, x <- comSfxCruz]
-          comPfx        = concat [aplicar pfx (raiz p) | pfx <- prefixos p]
+          comPfx        = concat [aplicar pfx (radical p) | pfx <- prefixos p]

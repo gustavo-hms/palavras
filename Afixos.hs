@@ -1,14 +1,17 @@
--- TODO sufixos podem ter eles também uma regra de sufixação
 -- TODO CIMFUMFIX
 -- TODO estudar de habilitar a "FLAG long" e a "FLAG num"
 -- TODO implementar FORBIDDENWORD
 module Afixos where
 
+import qualified Data.Map.Lazy as M
+
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
+
+type Símbolo = Char
 
 data Afixo = Afixo {
         tipo       :: Tipo,
-        símbolo    :: Char,
+        símbolo    :: Símbolo,
         podeCruzar :: Bool,
         quantidade :: Int,
         regras     :: [Regra]
@@ -16,11 +19,11 @@ data Afixo = Afixo {
 
 data Regra = Regra {
         tipoDoAfixo     :: Tipo,
-        símboloDoAfixo  :: Char,
+        símboloDoAfixo  :: Símbolo,
         remover         :: Int,
         inserir         :: String,
         condição        :: String -> Bool,
-        símbContinuação :: [Char],
+        símbContinuação :: [Símbolo],
         continuação     :: [Afixo]
     }
 
@@ -58,9 +61,9 @@ inserirRegra r a
           rs = regras a 
 
 criarRegra :: [String] -> Maybe Regra
-criarRegra (t:símb:aRemover:aInserir:contexto:_) = do
+criarRegra (t:s:aRemover:aInserir:contexto:_) = do
     t' <- gerarTipo t
-    return $ Regra t' (head símb) (length $ uniformizar aRemover) (uniformizar aInserir) (criarCondição t' cond) cont
+    return $ Regra t' (head s) (length $ uniformizar aRemover) (uniformizar aInserir) (criarCondição t' cond) cont []
     where uniformizar "0" = ""
           uniformizar p   = p
 
@@ -108,7 +111,13 @@ executarRegra termo r =
          Prefixo -> inserir r ++ drop (remover r) termo
          Sufixo  -> take (length termo - remover r) termo ++ inserir r
 
+preencherContinuação :: M.Map Símbolo Afixo -> Afixo -> Afixo
+preencherContinuação m a@(Afixo t s p q rs) =
+    case t of
+         Prefixo -> a
+         Sufixo  -> Afixo t s p q (map (inserirContinuações m) rs)
+
 inserirContinuações :: M.Map Char Afixo -> Regra -> Regra
-inserirContinuações m (Regra ta sa re i c ss cs) = Regra ta sa re i c ss cs'
-    where cs' = map (m M.!) ss
+inserirContinuações m (Regra ta sa re i c ss _) = Regra ta sa re i c ss cs
+    where cs = map (m M.!) ss
 
