@@ -5,7 +5,7 @@ import qualified Data.Map.Lazy as M
 import Data.List (partition)
 
 data Palavra = Palavra {
-        raiz     :: String,
+        radical  :: String,
         prefixos :: [Afixo],
         sufixos  :: [Afixo]
     }
@@ -16,6 +16,18 @@ criarPalavra p m
     | otherwise  = Palavra txt pref suf
     where (txt, símbs) = break (== '/') p
           (pref, suf)  = partition prefixo (map (m M.!) (tail símbs))
+
+obterAfixos :: M.Map Char Afixo -> [Char] -> (Afixo, Afixo)
+obterAfixos m símbs = partition prefixo (map (extrairAfixo m) símbs)
+
+extrairAfixo :: M.Map Char Afixo -> Char -> Afixo
+extrairAfixo m símb = preencherContinuação m (m M.! símb)
+
+preencherContinuação :: M.Map Char Afixo -> Afixo -> Afixo
+preencherContinuação a@(Afixo t s p q rs) =
+    case t of
+         Prefixo -> a
+         Sufixo  -> Afixo t s p q (map (inserirContinuações m) rs)
 
 expandir :: Palavra -> [String]
 expandir p = raiz p : comSfxSemCruz ++ comSfxCruz ++ comCruz ++ comPfx

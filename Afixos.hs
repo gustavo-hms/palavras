@@ -15,12 +15,13 @@ data Afixo = Afixo {
     }
 
 data Regra = Regra {
-        tipoDoAfixo    :: Tipo,
-        símboloDoAfixo :: Char,
-        remover        :: Int,
-        inserir        :: String,
-        condição       :: String -> Bool,
-        continuação    :: Char
+        tipoDoAfixo     :: Tipo,
+        símboloDoAfixo  :: Char,
+        remover         :: Int,
+        inserir         :: String,
+        condição        :: String -> Bool,
+        símbContinuação :: [Char],
+        continuação     :: [Afixo]
     }
 
 gerarTipo :: String -> Maybe Tipo
@@ -71,8 +72,8 @@ criarCondição :: Tipo -> String -> String -> Bool
 criarCondição t símbolos = condiçãoAPartirDeGrupos t $ snd (foldr agrupar (False, []) símbolos)
 
 -- Agrupa entradas entre colchetes.
--- Ex: snd $ foldr agrupar (False, []) "[^a]xy[bcdef]" == ["^a", "x", 
--- "y","bcdef"]
+-- Ex: snd $ foldr agrupar (False, []) "[^a]xy[bcdef]" ==
+--   ["^a", "x", "y","bcdef"]
 agrupar :: Char -> (Bool, [String]) -> (Bool, [String])
 agrupar c (grupoAberto, acumulado)
     | c == ']'    = (True, []:acumulado)
@@ -106,3 +107,8 @@ executarRegra termo r =
     case tipoDoAfixo r of
          Prefixo -> inserir r ++ drop (remover r) termo
          Sufixo  -> take (length termo - remover r) termo ++ inserir r
+
+inserirContinuações :: M.Map Char Afixo -> Regra -> Regra
+inserirContinuações m (Regra ta sa re i c ss cs) = Regra ta sa re i c ss cs'
+    where cs' = map (m M.!) ss
+
