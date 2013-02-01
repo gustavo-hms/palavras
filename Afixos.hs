@@ -1,7 +1,19 @@
 -- TODO CIMFUMFIX
 -- TODO estudar de habilitar a "FLAG long" e a "FLAG num"
 -- TODO implementar FORBIDDENWORD
-module Afixos where
+module Afixos (
+        Tipo,
+        Afixo(..),
+        Regra(..),
+        Símbolo,
+        prefixo,
+        sufixo,
+        criarRegra,
+        inserirRegra,
+        criarAfixo,
+        aplicar,
+        preencherContinuação
+    ) where
 
 import qualified Data.Map.Lazy as M
 
