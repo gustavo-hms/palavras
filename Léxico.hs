@@ -1,7 +1,7 @@
 module Main where
 
 import Afixos
---import Palavras
+import Palavras
 import qualified Data.Map.Lazy as M
 import Data.List (isPrefixOf)
 
@@ -38,3 +38,7 @@ mInserirRegra mr ma = do
     r <- mr
     a <- ma
     inserirRegra r a
+
+gerarPalavras :: [String] -> M.Map Char Afixo -> [String]
+gerarPalavras linhas m =
+    foldr (\p ps -> expandir (criarPalavra p m) ++ ps) [] linhas

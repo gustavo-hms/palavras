@@ -15,7 +15,7 @@ criarPalavra p m
     | null símbs = Palavra txt [] []
     | otherwise  = Palavra txt pref suf
     where (txt, símbs) = break (== '/') p
-          (pref, suf)  = obterAfixos m símbs
+          (pref, suf)  = obterAfixos m (if not (null símbs) then tail símbs else [])
 
 obterAfixos :: M.Map Símbolo Afixo -> [Símbolo] -> ([Afixo], [Afixo])
 obterAfixos m símbs = partition prefixo (map (extrairAfixo m) símbs)
