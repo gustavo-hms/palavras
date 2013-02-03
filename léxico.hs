@@ -41,4 +41,4 @@ mInserirRegra mr ma = do
 
 gerarPalavras :: [String] -> M.Map Char Afixo -> [String]
 gerarPalavras linhas m =
-    foldr (\p ps -> expandir (criarPalavra p m) ++ ps) [] linhas
+    foldl (\ps p -> ps ++ expandir (criarPalavra p m)) [] linhas
