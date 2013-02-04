@@ -16,6 +16,7 @@ module Afixos (
     ) where
 
 import qualified Data.Map.Lazy as M
+import Data.Maybe (mapMaybe)
 
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
 
@@ -131,5 +132,5 @@ preencherContinuação m a@(Afixo t s p q rs) =
 
 inserirContinuações :: M.Map Char Afixo -> Regra -> Regra
 inserirContinuações m (Regra ta sa re i c ss _) = Regra ta sa re i c ss cs
-    where cs = map (m M.!) ss
+    where cs = mapMaybe (`M.lookup` m) ss
 

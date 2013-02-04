@@ -1,12 +1,32 @@
 module Main where
 
 import Afixos
-import Palavras
-import qualified Data.Map.Lazy as M
 import Data.List (isPrefixOf)
+import qualified Data.Map.Lazy as M
+import Palavras
+import System.Environment (getArgs, getProgName)
+import System.IO 
 
 main :: IO ()
-main = undefined
+main = do
+    args <- getArgs
+    if length args /= 2
+       then do
+            nome <- getProgName
+            hPutStrLn stderr $ "Uso: " ++ nome ++ " <arquivo dic> <arquivo aff>"
+       else do
+            aff <- openFile (args !! 1) ReadMode  
+            hSetEncoding aff latin1
+            linhasAff <- hGetContents aff  
+            let m = gerarTabelaDeAfixos (lines linhasAff) M.empty
+
+            dic <- openFile (head args) ReadMode  
+            hSetEncoding dic latin1
+            linhasDic <- hGetContents dic  
+
+            putStr $ unlines (gerarPalavras (tail $ lines linhasDic) m)
+            hClose aff
+            hClose dic
 
 inserirAfixo :: Afixo -> M.Map Símbolo Afixo -> M.Map Símbolo Afixo
 inserirAfixo a = M.insert (símbolo a) a
@@ -41,4 +61,4 @@ mInserirRegra mr ma = do
 
 gerarPalavras :: [String] -> M.Map Char Afixo -> [String]
 gerarPalavras linhas m =
-    foldl (\ps p -> ps ++ expandir (criarPalavra p m)) [] linhas
+    foldr (\p ps -> expandir (criarPalavra p m) ++ ps) [] linhas
