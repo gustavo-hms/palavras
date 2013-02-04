@@ -17,6 +17,7 @@ module Afixos (
 
 import qualified Data.Map.Lazy as M
 import Data.Maybe (mapMaybe)
+import qualified Data.Text as T
 
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
 
@@ -34,16 +35,17 @@ data Regra = Regra {
         tipoDoAfixo     :: Tipo,
         símboloDoAfixo  :: Símbolo,
         remover         :: Int,
-        inserir         :: String,
-        condição        :: String -> Bool,
+        inserir         :: T.Text,
+        condição        :: T.Text -> Bool,
         símbContinuação :: [Símbolo],
         continuação     :: [Afixo]
     }
 
-gerarTipo :: String -> Maybe Tipo
-gerarTipo "PFX" = Just Prefixo
-gerarTipo "SFX" = Just Sufixo
-gerarTipo _     = Nothing
+gerarTipo :: T.Text -> Maybe Tipo
+gerarTipo t
+    | t == T.pack "PFX" = Just Prefixo
+    | t == T.pack "SFX" = Just Sufixo
+    | otherwise         = Nothing
 
 prefixo :: Afixo -> Bool
 prefixo a = tipo a == Prefixo
@@ -51,15 +53,17 @@ prefixo a = tipo a == Prefixo
 sufixo :: Afixo -> Bool
 sufixo a = tipo a == Sufixo
 
-criarAfixo :: [String] -> Maybe Afixo
+criarAfixo :: [T.Text] -> Maybe Afixo
 criarAfixo (t:símb:cruzamentos:qtd:[]) = do
     t' <- gerarTipo t
-    return $ Afixo t' (head símb) (aceitaCruzamentos cruzamentos) (read qtd) []
+    return $ Afixo t' (T.head símb) (aceitaCruzamentos cruzamentos)
+        (read $ T.unpack qtd) []
 criarAfixo _ = Nothing
 
-aceitaCruzamentos :: String -> Bool
-aceitaCruzamentos "Y" = True
-aceitaCruzamentos _   = False
+aceitaCruzamentos :: T.Text -> Bool
+aceitaCruzamentos y
+    | y == T.pack "Y"  = True
+    | otherwise        = False
 
 inserirRegra :: Regra -> Afixo -> Maybe Afixo
 inserirRegra r a
@@ -73,24 +77,25 @@ inserirRegra r a
           qtd = quantidade a
           rs  = regras a 
 
-criarRegra :: [String] -> Maybe Regra
+criarRegra :: [T.Text] -> Maybe Regra
 criarRegra (t:s:aRemover:aInserir:contexto:_) = do
     t' <- gerarTipo t
-    return $ Regra t' (head s) (length $ uniformizar aRemover) (uniformizar aInserir) (criarCondição t' cond) cont []
-    where uniformizar "0" = ""
-          uniformizar p   = p
-
-          (cond, resto) = break (== '/') contexto
-          cont          = if null resto then "" else tail resto
+    return $ Regra t' (T.head s) (T.length $ uniformizar aRemover)
+        (uniformizar aInserir) (criarCondição t' cond) cont []
+    where uniformizar p
+              | p == T.pack "0" = T.pack ""
+              | otherwise       = p
+          (cond, resto) = T.breakOn (T.pack "/") contexto
+          cont          = if T.null resto then T.pack "" else T.tail resto
 criarRegra _ = Nothing
 
-criarCondição :: Tipo -> String -> String -> Bool
+criarCondição :: Tipo -> T.Text -> T.Text -> Bool
 criarCondição t símbolos = condiçãoAPartirDeGrupos t $ snd (foldr agrupar (False, []) símbolos)
 
 -- Agrupa entradas entre colchetes.
 -- Ex: snd $ foldr agrupar (False, []) "[^a]xy[bcdef]" ==
 --   ["^a", "x", "y","bcdef"]
-agrupar :: Char -> (Bool, [String]) -> (Bool, [String])
+agrupar :: Char -> (Bool, [T.Text]) -> (Bool, [T.Text])
 agrupar c (grupoAberto, acumulado)
     | c == ']'    = (True, []:acumulado)
     | c == '['    = (False, acumulado)
@@ -99,7 +104,7 @@ agrupar c (grupoAberto, acumulado)
     where a  = head acumulado
           as = tail acumulado
 
-condiçãoAPartirDeGrupos :: Tipo -> [String] -> String -> Bool
+condiçãoAPartirDeGrupos :: Tipo -> [T.Text] -> T.Text -> Bool
 condiçãoAPartirDeGrupos t grupos palavra
     | tamanhoDaPalavra < númeroDeGrupos = False
     | t == Prefixo                      = and $ zipWith ($) predicados palavra
@@ -109,16 +114,16 @@ condiçãoAPartirDeGrupos t grupos palavra
           finalDaPalavra   = drop (tamanhoDaPalavra - númeroDeGrupos) palavra
           predicados       = map criarPredicado grupos 
 
-criarPredicado :: String -> Char -> Bool
+criarPredicado :: T.Text -> Char -> Bool
 criarPredicado "." _                 = True
 criarPredicado (c:[]) letra          = c == letra
 criarPredicado ('^':elementos) letra = letra `notElem` elementos
 criarPredicado elementos letra       = letra `elem` elementos
 
-aplicar :: Afixo -> String -> [String]
+aplicar :: Afixo -> T.Text -> [T.Text]
 aplicar afx termo = map (executarRegra termo) (filter (`condição` termo) (regras afx))
 
-executarRegra :: String -> Regra -> String
+executarRegra :: T.Text -> Regra -> T.Text
 executarRegra termo r =
     case tipoDoAfixo r of
          Prefixo -> inserir r ++ drop (remover r) termo
