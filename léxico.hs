@@ -25,7 +25,7 @@ main = do
             hSetEncoding dic latin1
             linhasDic <- hGetContents dic  
 
-            putStr $ unlines (gerarPalavras (tail $ words linhasDic) m)
+            putStr $ unlines (gerarPalavras (tail $ lines linhasDic) m)
             hClose aff
             hClose dic
 
