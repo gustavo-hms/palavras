@@ -16,7 +16,7 @@ module Afixos (
     ) where
 
 import qualified Data.Map.Lazy as M
-import Data.Maybe (mapMaybe)
+import Data.Maybe (isJust, isNothing, mapMaybe)
 import qualified Data.Text.Lazy as T
 
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
@@ -107,20 +107,26 @@ agrupar c (grupoAberto, acumulado)
 
 condiçãoAPartirDeGrupos :: Tipo -> [T.Text] -> T.Text -> Bool
 condiçãoAPartirDeGrupos t grupos palavra
-    | tamanhoDaPalavra < fromIntegral númeroDeGrupos = False
-    | t == Prefixo = and $ zipWith ($) predicados (T.unpack palavra)
-    | otherwise    = and $ zipWith ($) predicados (T.unpack finalDaPalavra) 
+    | tamanhoDaPalavra < nºDeGrupos = False
+    | t == Prefixo = fst $ T.foldl validar (True, predicados) inícioDaPalavra
+    | otherwise    = fst $ T.foldl validar (True, predicados) finalDaPalavra
     where tamanhoDaPalavra = T.length palavra
-          númeroDeGrupos   = length grupos
-          finalDaPalavra   = T.drop (tamanhoDaPalavra - fromIntegral númeroDeGrupos) palavra
+          nºDeGrupos       = fromIntegral $ length grupos
+          finalDaPalavra   = T.take (tamanhoDaPalavra - nºDeGrupos) palavra
+          inícioDaPalavra  = T.drop nºDeGrupos palavra
           predicados       = map criarPredicado grupos 
+
+validar :: (Bool, [Char -> Bool]) -> Char -> (Bool, [Char -> Bool])
+validar (b,     []) _ = (b, [])
+validar (False, ps) _ = (False, ps)
+validar (_,     ps) c = (head ps c, tail ps)
 
 criarPredicado :: T.Text -> Char -> Bool
 criarPredicado p c
     | p == T.pack "." = True
     | T.length p == 1 = p == T.singleton c
-    | T.head p == '^' = c `notElem` T.unpack p
-    | otherwise       = c `elem` T.unpack p
+    | T.head p == '^' = isNothing $ T.find (== c) p
+    | otherwise       = isJust $ T.find (== c) p
 
 aplicar :: Afixo -> T.Text -> [T.Text]
 aplicar afx termo =
