@@ -19,13 +19,14 @@ main = do
             aff <- openFile (args !! 1) ReadMode  
             hSetEncoding aff latin1
             linhasAff <- T.hGetContents aff  
-            let m = gerarTabelaDeAfixos (T.lines linhasAff) M.empty
+            let la = filtrarLinhas $ T.lines linhasAff
+            let m = gerarTabelaDeAfixos la M.empty
 
             dic <- openFile (head args) ReadMode  
             hSetEncoding dic latin1
             linhasDic <- T.hGetContents dic  
 
-            T.putStr $ T.unlines (gerarPalavras (tail $ T.lines linhasDic) m)
+            T.putStr $ T.unlines (gerarPalavras (tail $ T.words linhasDic) m)
             hClose aff
             hClose dic
 
