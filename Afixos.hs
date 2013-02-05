@@ -112,8 +112,8 @@ condiçãoAPartirDeGrupos t grupos palavra
     | otherwise    = fst $ T.foldl validar (True, predicados) finalDaPalavra
     where tamanhoDaPalavra = T.length palavra
           nºDeGrupos       = fromIntegral $ length grupos
-          finalDaPalavra   = T.take (tamanhoDaPalavra - nºDeGrupos) palavra
-          inícioDaPalavra  = T.drop nºDeGrupos palavra
+          finalDaPalavra   = T.drop (tamanhoDaPalavra - nºDeGrupos) palavra
+          inícioDaPalavra  = T.take nºDeGrupos palavra
           predicados       = map criarPredicado grupos 
 
 validar :: (Bool, [Char -> Bool]) -> Char -> (Bool, [Char -> Bool])
