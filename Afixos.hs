@@ -17,7 +17,7 @@ module Afixos (
 
 import qualified Data.Map.Lazy as M
 import Data.Maybe (mapMaybe)
-import qualified Data.Text as T
+import qualified Data.Text.Lazy as T
 
 data Tipo = Prefixo | Sufixo deriving (Eq, Show)
 
@@ -80,54 +80,57 @@ inserirRegra r a
 criarRegra :: [T.Text] -> Maybe Regra
 criarRegra (t:s:aRemover:aInserir:contexto:_) = do
     t' <- gerarTipo t
-    return $ Regra t' (T.head s) (T.length $ uniformizar aRemover)
+    return $ Regra t' (T.head s) (fromIntegral . T.length $ uniformizar aRemover)
         (uniformizar aInserir) (criarCondição t' cond) cont []
     where uniformizar p
               | p == T.pack "0" = T.pack ""
               | otherwise       = p
           (cond, resto) = T.breakOn (T.pack "/") contexto
-          cont          = if T.null resto then T.pack "" else T.tail resto
+          cont          = if T.null resto then "" else T.unpack $ T.tail resto
 criarRegra _ = Nothing
 
 criarCondição :: Tipo -> T.Text -> T.Text -> Bool
-criarCondição t símbolos = condiçãoAPartirDeGrupos t $ snd (foldr agrupar (False, []) símbolos)
+criarCondição t símbolos = condiçãoAPartirDeGrupos t $
+    snd (T.foldr agrupar (False, []) símbolos)
 
 -- Agrupa entradas entre colchetes.
 -- Ex: snd $ foldr agrupar (False, []) "[^a]xy[bcdef]" ==
 --   ["^a", "x", "y","bcdef"]
 agrupar :: Char -> (Bool, [T.Text]) -> (Bool, [T.Text])
 agrupar c (grupoAberto, acumulado)
-    | c == ']'    = (True, []:acumulado)
+    | c == ']'    = (True, T.empty:acumulado)
     | c == '['    = (False, acumulado)
-    | grupoAberto = (True, (c:a):as)
-    | otherwise   = (False, [c]:acumulado)
+    | grupoAberto = (True, (c `T.cons` a):as)
+    | otherwise   = (False, T.singleton c:acumulado)
     where a  = head acumulado
           as = tail acumulado
 
 condiçãoAPartirDeGrupos :: Tipo -> [T.Text] -> T.Text -> Bool
 condiçãoAPartirDeGrupos t grupos palavra
-    | tamanhoDaPalavra < númeroDeGrupos = False
-    | t == Prefixo                      = and $ zipWith ($) predicados palavra
-    | otherwise                         = and $ zipWith ($) predicados finalDaPalavra 
-    where tamanhoDaPalavra = length palavra
+    | tamanhoDaPalavra < fromIntegral númeroDeGrupos = False
+    | t == Prefixo = and $ zipWith ($) predicados (T.unpack palavra)
+    | otherwise    = and $ zipWith ($) predicados (T.unpack finalDaPalavra) 
+    where tamanhoDaPalavra = T.length palavra
           númeroDeGrupos   = length grupos
-          finalDaPalavra   = drop (tamanhoDaPalavra - númeroDeGrupos) palavra
+          finalDaPalavra   = T.drop (tamanhoDaPalavra - fromIntegral númeroDeGrupos) palavra
           predicados       = map criarPredicado grupos 
 
 criarPredicado :: T.Text -> Char -> Bool
-criarPredicado "." _                 = True
-criarPredicado (c:[]) letra          = c == letra
-criarPredicado ('^':elementos) letra = letra `notElem` elementos
-criarPredicado elementos letra       = letra `elem` elementos
+criarPredicado p c
+    | p == T.pack "." = True
+    | T.length p == 1 = p == T.singleton c
+    | T.head p == '^' = c `notElem` T.unpack p
+    | otherwise       = c `elem` T.unpack p
 
 aplicar :: Afixo -> T.Text -> [T.Text]
-aplicar afx termo = map (executarRegra termo) (filter (`condição` termo) (regras afx))
+aplicar afx termo =
+    map (executarRegra termo) (filter (`condição` termo) (regras afx))
 
 executarRegra :: T.Text -> Regra -> T.Text
 executarRegra termo r =
     case tipoDoAfixo r of
-         Prefixo -> inserir r ++ drop (remover r) termo
-         Sufixo  -> take (length termo - remover r) termo ++ inserir r
+         Prefixo -> inserir r `T.append` T.drop (fromIntegral (remover r)) termo
+         Sufixo  -> T.take (T.length termo - fromIntegral (remover r)) termo `T.append` inserir r
 
 preencherContinuação :: M.Map Símbolo Afixo -> Afixo -> Afixo
 preencherContinuação m a@(Afixo t s p q rs) =
@@ -135,7 +138,7 @@ preencherContinuação m a@(Afixo t s p q rs) =
          Prefixo -> a
          Sufixo  -> Afixo t s p q (map (inserirContinuações m) rs)
 
-inserirContinuações :: M.Map Char Afixo -> Regra -> Regra
+inserirContinuações :: M.Map Símbolo Afixo -> Regra -> Regra
 inserirContinuações m (Regra ta sa re i c ss _) = Regra ta sa re i c ss cs
     where cs = mapMaybe (`M.lookup` m) ss
 

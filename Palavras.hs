@@ -4,19 +4,22 @@ import Afixos
 import Data.List (partition)
 import qualified Data.Map.Lazy as M
 import Data.Maybe (mapMaybe)
+import qualified Data.Text.Lazy as T
 
 data Palavra = Palavra {
-        radical  :: String,
+        radical  :: T.Text,
         prefixos :: [Afixo],
         sufixos  :: [Afixo]
     }
 
-criarPalavra :: String -> M.Map Char Afixo -> Palavra
+criarPalavra :: T.Text -> M.Map Símbolo Afixo -> Palavra
 criarPalavra p m
-    | null símbs = Palavra txt [] []
+    | T.null símbs = Palavra txt [] []
     | otherwise  = Palavra txt pref suf
-    where (txt, símbs) = break (== '/') p
-          (pref, suf)  = obterAfixos m (if not (null símbs) then tail símbs else [])
+    where (txt, símbs) = T.breakOn (T.pack "/") p
+          (pref, suf)  = obterAfixos m (if not (T.null símbs)
+                                           then (T.unpack . T.tail) símbs
+                                           else [])
 
 obterAfixos :: M.Map Símbolo Afixo -> [Símbolo] -> ([Afixo], [Afixo])
 obterAfixos m símbs = partition prefixo (mapMaybe (extrairAfixo m) símbs)
@@ -27,7 +30,7 @@ extrairAfixo m s =
          Just a  -> Just $ preencherContinuação m a
          Nothing -> Nothing
 
-expandir :: Palavra -> [String]
+expandir :: Palavra -> [T.Text]
 expandir p = radical p : comSfxSemCruz ++ comSfxCruz ++ comCruz ++ comPfx
     where comSfxSemCruz = concat [aplicar sfx (radical p) | sfx <- sufixos p, not (podeCruzar sfx)]
           comSfxCruz    = concat [aplicar sfx (radical p) | sfx <- sufixos p, podeCruzar sfx]
