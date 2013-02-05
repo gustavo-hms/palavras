@@ -101,12 +101,12 @@ agrupar c (grupoAberto, acumulado)
 
 condiçãoAPartirDeGrupos :: Tipo -> [String] -> String -> Bool
 condiçãoAPartirDeGrupos t grupos palavra
-    | tamanhoDaPalavra < númeroDeGrupos = False
+    | tamanhoDaPalavra < nºDeGrupos = False
     | t == Prefixo                      = and $ zipWith ($) predicados palavra
     | otherwise                         = and $ zipWith ($) predicados finalDaPalavra 
     where tamanhoDaPalavra = length palavra
-          númeroDeGrupos   = length grupos
-          finalDaPalavra   = drop (tamanhoDaPalavra - númeroDeGrupos) palavra
+          nºDeGrupos       = length grupos
+          finalDaPalavra   = drop (tamanhoDaPalavra - nºDeGrupos) palavra
           predicados       = map criarPredicado grupos 
 
 criarPredicado :: String -> Char -> Bool
