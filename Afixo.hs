@@ -1,7 +1,7 @@
 -- TODO CIMFUMFIX
 -- TODO estudar de habilitar a "FLAG long" e a "FLAG num"
 -- TODO implementar FORBIDDENWORD
-module Afixos (
+module Afixo (
         Tipo,
         Afixo(..),
         Regra(..),

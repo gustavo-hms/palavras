@@ -1,33 +1,47 @@
 module Main where
 
-import Afixos
+import Afixo
 import Data.List (isPrefixOf)
 import qualified Data.Map.Lazy as M
-import Palavras
+import Palavra
 import System.Environment (getArgs, getProgName)
-import System.IO 
+import System.IO
+import Text.Regex.TDFA
 
 main :: IO ()
 main = do
     args <- getArgs
-    if length args /= 2
+    if length args /= 1
        then do
-            nome <- getProgName
-            hPutStrLn stderr $ "Uso: " ++ nome ++ " <arquivo dic> <arquivo aff>"
+           nome <- getProgName
+           hPutStrLn stderr $ "Uso: " ++ nome ++ " <expressão>"
        else do
-            aff <- openFile (args !! 1) ReadMode  
-            hSetEncoding aff latin1
-            linhasAff <- hGetContents aff  
-            let la = filtrarLinhas $ lines linhasAff
-                m  = gerarTabelaDeAfixos la M.empty
+           let (arquivoAff, arquivoDic) = dicionário
 
-            dic <- openFile (head args) ReadMode  
-            hSetEncoding dic latin1
-            linhasDic <- hGetContents dic  
+           aff <- openFile arquivoAff ReadMode
+           dic <- openFile arquivoDic ReadMode
+           codificação <- lerCodificação aff
+           hSetEncoding aff codificação
+           hSetEncoding dic codificação
 
-            putStr $ unlines (gerarPalavras (tail $ lines linhasDic) m)
-            hClose aff
-            hClose dic
+           linhasAff <- hGetContents aff
+           let la = filtrarLinhas $ lines linhasAff
+               m  = gerarTabelaDeAfixos la M.empty
+
+           linhasDic <- hGetContents dic
+           putStr . unlines . map head $
+               unlines (gerarPalavras (tail $ lines linhasDic) m) =~ (head args ++ "$")
+           hClose aff
+           hClose dic
+
+dicionário :: (String, String)
+dicionário = (base ++ ".aff", base ++ ".dic")
+    where caminho = "/usr/share/hunspell/"
+          língua  = "pt_BR"
+          base    = caminho ++ língua
+
+lerCodificação :: Handle -> IO TextEncoding
+lerCodificação _ = return latin1
 
 filtrarLinhas :: [String] -> [String]
 filtrarLinhas ls = [l | l <- ls, pfx <- ["PFX", "SFX"], pfx `isPrefixOf` l]

@@ -1,6 +1,6 @@
-module Palavras where
+module Palavra where
 
-import Afixos
+import Afixo
 import Data.List (partition)
 import qualified Data.Map.Lazy as M
 import Data.Maybe (mapMaybe)
