@@ -1,9 +1,9 @@
 module Main where
 
-import Afixos
+import Afixo
 import Data.List (isPrefixOf)
 import qualified Data.Map.Lazy as M
-import Palavras
+import Palavra
 import System.Environment (getArgs, getProgName)
 import System.IO 
 
