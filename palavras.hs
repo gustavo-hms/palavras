@@ -29,8 +29,9 @@ main = do
                m  = gerarTabelaDeAfixos la M.empty
 
            linhasDic <- hGetContents dic
-           putStr . unlines . map head $
-               unlines (gerarPalavras (tail $ lines linhasDic) m) =~ (head args ++ "$")
+           let exprFinal = formatarExpressão $ head args
+           putStr . unlines . filter (=~ exprFinal) $
+               gerarPalavras (tail $ lines linhasDic) m
            hClose aff
            hClose dic
 
@@ -45,6 +46,9 @@ lerCodificação _ = return latin1
 
 filtrarLinhas :: [String] -> [String]
 filtrarLinhas ls = [l | l <- ls, pfx <- ["PFX", "SFX"], pfx `isPrefixOf` l]
+
+formatarExpressão :: String -> String
+formatarExpressão e = e ++ "$"
 
 gerarTabelaDeAfixos :: [String] -> M.Map Símbolo Afixo -> M.Map Símbolo Afixo
 gerarTabelaDeAfixos []     m = m
