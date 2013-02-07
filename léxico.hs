@@ -25,7 +25,7 @@ main = do
             hSetEncoding dic latin1
             linhasDic <- hGetContents dic  
 
-            putStr $ unlines (gerarPalavras (tail $ lines linhasDic) m)
+            mapM putStr $ gerarPalavras (tail $ lines linhasDic) m
             hClose aff
             hClose dic
 
@@ -59,4 +59,4 @@ mInserirRegra mr ma = do
 
 gerarPalavras :: [String] -> M.Map Char Afixo -> [String]
 gerarPalavras linhas m =
-    foldr (\p ps -> expandir (criarPalavra p m) ++ ps) [] linhas
+    map (unlines . expandir . (`criarPalavra` m)) linhas
