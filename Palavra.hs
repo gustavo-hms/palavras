@@ -22,10 +22,7 @@ obterAfixos :: M.Map Símbolo Afixo -> [Símbolo] -> ([Afixo], [Afixo])
 obterAfixos m símbs = partition prefixo (mapMaybe (extrairAfixo m) símbs)
 
 extrairAfixo :: M.Map Símbolo Afixo -> Símbolo -> Maybe Afixo
-extrairAfixo m s =
-    case M.lookup s m of
-         Just a  -> Just $ preencherContinuação m a
-         Nothing -> Nothing
+extrairAfixo m s = M.lookup s m >>= Just . preencherContinuação m
 
 expandir :: Palavra -> [String]
 expandir p = radical p : comSfxSemCruz ++ comSfxCruz ++ comCruz ++ comPfx
