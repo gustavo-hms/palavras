@@ -30,7 +30,7 @@ main = do
 
            linhasDic <- hGetContents dic
            let exprFinal = formatarExpressão $ head args
-           putStr . unlines . filter (=~ exprFinal) $
+           mapM_ putStr $ map (unlines . (map head) . (=~ exprFinal)) $
                gerarPalavras (tail $ lines linhasDic) m
            hClose aff
            hClose dic
@@ -48,7 +48,7 @@ filtrarLinhas :: [String] -> [String]
 filtrarLinhas ls = [l | l <- ls, pfx <- ["PFX", "SFX"], pfx `isPrefixOf` l]
 
 formatarExpressão :: String -> String
-formatarExpressão e = e ++ "$"
+formatarExpressão e = "^.*" ++ e ++ "$"
 
 gerarTabelaDeAfixos :: [String] -> M.Map Símbolo Afixo -> M.Map Símbolo Afixo
 gerarTabelaDeAfixos []     m = m
@@ -77,4 +77,4 @@ mInserirRegra mr ma = do
 
 gerarPalavras :: [String] -> M.Map Char Afixo -> [String]
 gerarPalavras linhas m =
-    foldr (\p ps -> expandir (criarPalavra p m) ++ ps) [] linhas
+    map (unlines . expandir . (`criarPalavra` m)) linhas
