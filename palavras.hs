@@ -48,7 +48,30 @@ filtrarLinhas :: [String] -> [String]
 filtrarLinhas ls = [l | l <- ls, pfx <- ["PFX", "SFX"], pfx `isPrefixOf` l]
 
 formatarExpressão :: String -> String
-formatarExpressão e = "^.*" ++ e ++ "$"
+formatarExpressão e = início ++ exprFinal ++ "$"
+    where início    = if head e /= '^' then "^.*" else ""
+          exprFinal = inserirConsoantes . inserirVogais $ e
+
+inserirConsoantes :: String -> String
+inserirConsoantes "" = ""
+inserirConsoantes s  = começo ++ consoantes ++ inserirConsoantes final
+    where (começo, resto) = break (== '#') s
+          final           = if length resto > 1 then tail resto else ""
+          consoantes      = if length resto > 1 
+                               then "[^" ++ vogais ++ "]"
+                               else ""
+
+inserirVogais :: String -> String
+inserirVogais "" = ""
+inserirVogais s  = começo ++ vogais' ++ inserirVogais final
+    where (começo, resto) = break (== '@') s
+          final           = if length resto > 1 then tail resto else ""
+          vogais'         = if length resto > 1 
+                               then "[" ++ vogais ++ "]"
+                               else ""
+
+vogais :: String
+vogais = "aáàãâeéèẽêiíìĩîoóòõôuúùũûy"
 
 gerarTabelaDeAfixos :: [String] -> M.Map Símbolo Afixo -> M.Map Símbolo Afixo
 gerarTabelaDeAfixos []     m = m
