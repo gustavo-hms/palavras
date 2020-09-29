@@ -8,7 +8,6 @@ struct Word {
     flags: Vec<char>,
 }
 
-#[derive(Default)]
 struct Affix {
     stripping: String,
     affix: String,
@@ -50,22 +49,24 @@ impl<I: Iterator<Item = String>> Iterator for AffixIterator<I> {
     fn next(&mut self) -> Option<Self::Item> {
         let line = self.iter.next()?;
         let mut tokens = line.split_whitespace();
-        let (affix_type, name, cross_product, count): (&str, &str, &str, usize) =
+
+        let (affix_type, name, cross_product, count) =
             match (tokens.next(), tokens.next(), tokens.next(), tokens.next()) {
-                (Some(a), Some(b), Some(c), Some(d)) => (a, b, c, String::from(d).parse().unwrap()),
+                (Some(a), Some(b), Some(c), Some(d)) => (a, b, c, d.parse::<usize>().unwrap()),
 
                 _ => panic!("Arquivo corrompido!"),
             };
 
         let mut affixes = Vec::with_capacity(count);
+
         for _ in 0..count {
             let affix = parse_affix(affix_type, name, cross_product, self.iter.next()?);
             affixes.push(affix);
         }
 
         match affix_type {
-            "PFX" => Some((String::from(name), AffixClass::Prefix(affixes))),
-            _ => Some((String::from(name), AffixClass::Suffix(affixes))),
+            "PFX" => Some((name.to_string(), AffixClass::Prefix(affixes))),
+            _ => Some((name.to_string(), AffixClass::Suffix(affixes))),
         }
     }
 }
@@ -80,7 +81,7 @@ fn parse_affix(typ: &str, name: &str, cross_product: &str, line: String) -> Affi
         tokens.next(),
     ) {
         (Some(a), Some(b), Some(c), Some(d), Some(e)) if a == typ && b == name => {
-            (String::from(c), String::from(d), String::from(e))
+            (c.to_string(), d.to_string(), e.to_string())
         }
 
         _ => panic!("Arquivo corrompido!"),
