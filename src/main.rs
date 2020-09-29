@@ -4,8 +4,8 @@ use std::io::BufReader;
 use std::{collections::HashMap, fs::File};
 
 struct Word {
-    radix: String,
-    flags: Vec<char>,
+    root: String,
+    flags: Option<String>,
 }
 
 struct Affix {
@@ -21,8 +21,18 @@ enum AffixClass {
 }
 
 fn main() -> io::Result<()> {
-    let file = File::open("pt_BR.aff")?;
-    let affixes = build_affixes_table(BufReader::new(file));
+    let aff = File::open("pt_BR.aff")?;
+    let affixes = build_affixes_table(BufReader::new(aff));
+
+    let dic = File::open("pt_BR.dic")?;
+    let words = BufReader::new(dic)
+        .lines()
+        .skip(1)
+        .filter_map(|line| line.ok())
+        .map(|mut root| {
+            let flags = root.find("/").map(|i| root.split_off(i));
+            Word { root, flags }
+        });
 
     Ok(())
 }
@@ -89,7 +99,8 @@ fn parse_affix(typ: &str, name: &str, cross_product: &str, line: String) -> Affi
 
     let cross_product = match cross_product {
         "Y" => true,
-        _ => false,
+        "N" => false,
+        _ => panic!("Arquivo corrompido!"),
     };
 
     Affix {
